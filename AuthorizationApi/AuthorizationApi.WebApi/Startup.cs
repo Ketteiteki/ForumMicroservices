@@ -39,6 +39,7 @@ public class Startup
             config.AddConsumer<RegistrationEventHandler>();
             config.AddConsumer<LoginEventHandler>();
             config.AddConsumer<ValidateAccessTokenEventHandler>();
+            config.AddConsumer<DeleteUserEventHandler>();
             
             config.UsingRabbitMq((ctx, cfg) =>
             {
@@ -53,6 +54,7 @@ public class Startup
                     c.ConfigureConsumer<RegistrationEventHandler>(ctx);
                     c.ConfigureConsumer<LoginEventHandler>(ctx);
                     c.ConfigureConsumer<ValidateAccessTokenEventHandler>(ctx);
+                    c.ConfigureConsumer<DeleteUserEventHandler>(ctx);
                 });
                 
                 cfg.ConfigureJsonSerializer(options =>

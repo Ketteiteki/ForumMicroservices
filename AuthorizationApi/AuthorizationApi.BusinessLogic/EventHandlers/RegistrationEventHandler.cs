@@ -2,6 +2,7 @@
 using AuthorizationApi.Domain.Constants;
 using AuthorizationApi.Domain.Entities;
 using AuthorizationApi.Persistence;
+using Core.DTOs;
 using Core.Events;
 using Core.Models;
 using Core.Models.Errors;
@@ -34,7 +35,7 @@ public class RegistrationEventHandler : IConsumer<RegistrationEvent>
 
         if (requester != null)
         {
-            await context.RespondAsync(new Result<string>(new AuthorizationError("User with this nickname already exists")));
+            await context.RespondAsync(new Result<TokenAndId>(new AuthorizationError("User with this nickname already exists")));
             return;
         }
 
@@ -51,7 +52,11 @@ public class RegistrationEventHandler : IConsumer<RegistrationEvent>
         await _databaseContext.SaveChangesAsync();
 
         var token = _jwtTokenService.CreateAccessToken(newUser, _configuration[AppSettingsConstants.AccessTokenSecretSignKey]);
+
+        var tokenAndGuid = new TokenAndId(
+            token: token,
+            id: newUser.Id);
         
-        await context.RespondAsync(new Result<string>(token));
+        await context.RespondAsync(new Result<TokenAndId>(tokenAndGuid));
     }
 }

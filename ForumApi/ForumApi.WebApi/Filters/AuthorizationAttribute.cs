@@ -19,31 +19,35 @@ public class AuthorizationAttribute : ActionFilterAttribute, IAsyncAuthorization
 
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
-        if (context.HttpContext.Request.Headers.TryGetValue("Authorization", out var token) == false)
+        if (context.HttpContext.Request.Headers.TryGetValue("Authorization", out var bearerToken) == false)
         {
             context.Result = new UnauthorizedResult();
             return;
         }
-
+        
+        if (bearerToken.ToString().Split(" ").FirstOrDefault("Bearer") == null ||
+            bearerToken.ToString().Split(" ").Length != 2)
+        {
+            context.Result = new UnauthorizedResult();
+            return;
+        }
+        
+        var token = bearerToken.ToString().Split(" ")[1];
+        
         var validateAccessTokenEvent = new ValidateAccessTokenEvent(
             Token: token);
         
         var validateAccessTokenResult = await _validateAccessTokenClient.GetResponse<Result<Guid>>(validateAccessTokenEvent);
+
+        if (validateAccessTokenResult.Message.IsSuccess == false)
+        {
+            context.Result = new UnauthorizedResult();
+            return;
+        }
         
         var requesterGuid = validateAccessTokenResult.Message.Value;
 
         var claims = new List<Claim> { new (ClaimConstants.Id, requesterGuid.ToString()) };
-        
-        // var validateAccessTokenResult = await _validateAccessTokenClient.GetResponse<Result<JwtSecurityToken>>(validateAccessTokenEvent);
-        //
-        // if (validateAccessTokenResult.Message.IsSuccess)
-        // {
-        //     context.Result = new UnauthorizedResult();
-        //     return;
-        // }
-        //
-        // var claims = validateAccessTokenResult.Message.Value.Claims;
-        //
         
         var claimsIdentity = new ClaimsIdentity(claims);
         

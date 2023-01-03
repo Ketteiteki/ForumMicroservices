@@ -1,5 +1,7 @@
-﻿using ForumApi.BusinessLogic.ApiCommands.Users;
+﻿using AuthorizationApi.Domain.Constants;
+using ForumApi.BusinessLogic.ApiCommands.Users;
 using ForumApi.BusinessLogic.ApiQueries.Users;
+using ForumApi.WebApi.Filters;
 using ForumApi.WebApi.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -43,5 +45,17 @@ public class UserController : ApiControllerBase
             Password: loginRequest.Password);
 
         return await RequestAsync(loginQuery, cancellationToken);
+    }
+    
+    [TypeFilter(typeof(AuthorizationAttribute))]
+    [HttpDelete("deleteAccount")]
+    public async Task<IActionResult> DeleteAccount(CancellationToken cancellationToken)
+    {
+        var requesterId = new Guid(HttpContext.User.Claims.First(c => c.Type == ClaimConstants.Id).Value);
+        
+        var deleteAccountCommand = new DeleteAccountCommand(
+            RequesterId: requesterId);
+
+        return await RequestAsync(deleteAccountCommand, cancellationToken);
     }
 }

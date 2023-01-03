@@ -93,6 +93,7 @@ public class Startup
             config.AddRequestClient<RegistrationEvent>();
             config.AddRequestClient<LoginEvent>();
             config.AddRequestClient<ValidateAccessTokenEvent>();
+            config.AddRequestClient<DeleteUserEvent>();
         });
         
         serviceCollection.AddMassTransitHostedService();

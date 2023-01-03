@@ -32,6 +32,6 @@ public class ValidateAccessTokenEventHandler : IConsumer<ValidateAccessTokenEven
             return;
         }
         
-        await context.RespondAsync(new Result<JwtSecurityToken>(new AuthorizationError("Invalid token")));
+        await context.RespondAsync(new Result<Guid>(new AuthorizationError("Invalid token")));
     }
 }

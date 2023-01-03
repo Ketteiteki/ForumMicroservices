@@ -1,4 +1,5 @@
-﻿using Core.Events;
+﻿using Core.DTOs;
+using Core.Events;
 using Core.Models;
 using Core.Models.Errors;
 using ForumApi.BusinessLogic.DTOs;
@@ -29,23 +30,16 @@ public class RegistrationCommandHandler : IRequestHandler<RegistrationCommand, R
             Nickname: request.Nickname,
             Password: request.Password);
         
-        var registrationResult = await _registrationClient.GetResponse<Result<string>>(registrationEvent, cancellationToken);
+        var registrationResult = await _registrationClient.GetResponse<Result<TokenAndId>>(registrationEvent, cancellationToken);
 
         if (registrationResult.Message.IsSuccess == false)
         {
             return new Result<AuthorizationDto>(new AuthorizationError(registrationResult.Message.Error.Message));
         }
 
-        var accessToken = registrationResult.Message.Value;
+        var accessToken = registrationResult.Message.Value.Token;
+        var newUserId = registrationResult.Message.Value.Id;
 
-        var validateAccessTokenEvent = new ValidateAccessTokenEvent(
-            Token: accessToken);
-        
-        var validateAccessTokenResult = await _validateAccessTokenClient
-            .GetResponse<Result<Guid>>(validateAccessTokenEvent, cancellationToken);
-
-        var newUserId = validateAccessTokenResult.Message.Value;
-        
         var newUser = new UserEntity(
             id: newUserId,
             nickname: request.Nickname);
